@@ -79,6 +79,7 @@ pycparser==3.12
 Pygments==2.21.0
 pyogrio==0.13.0
 pyparsing==3.3.3
+pypdf==6.21.4
 pyproj==3.8.0
 python-dateutil==3.0.0
 python-json-logger==4.2.0
@@ -91,6 +92,7 @@ rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
 rpds-py==2026.9.1
+scipy==1.18.1
 Send2Trash==2.1.0
 shapely==2.2.0
 six==1.17.0

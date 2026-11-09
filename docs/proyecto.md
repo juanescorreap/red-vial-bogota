@@ -12,7 +12,7 @@ Objetivo general: entregar un análisis reproducible de la estructura, la vulner
 
 ## 2. Estado actual (avance presentado)
 
-Las cifras provienen de `docs/referencia/contexto_caos_y_complejidad.md` y se contrastaron con el texto extraído de la presentación de avance (`docs/referencia/texto_pdfs_extraido.md`, diapositivas 3 y 7 a 13). No aparecen en ese texto: los 5.175 enlaces y los 148.019 de la red completa, el escenario "día hábil, hora pico AM" y el nombre "Fontibón a Kennedy" del enlace nuevo; esos datos solo constan en el documento de contexto. Ninguna cifra está verificada contra una ejecución: el notebook del avance no conserva salidas (ver 2.5 y la sección 8).
+Las cifras provienen de `docs/referencia/contexto_caos_y_complejidad.md` y se contrastaron con el texto extraído de la presentación de avance (`docs/referencia/texto_pdfs_extraido.md`, diapositivas 3 y 7 a 13). No aparecen en ese texto: los 5.175 enlaces (el `.graphml` arterial tiene 5.199 aristas dirigidas, ver `docs/referencia/inventario_drive.md`) y los 148.019 de la red completa (confirmados en el `.graphml`), el escenario "día hábil, hora pico AM" y el nombre "Fontibón a Kennedy" del enlace nuevo; esos datos solo constan en el documento de contexto. Ninguna cifra está verificada contra una ejecución: el notebook del avance no conserva salidas (ver 2.5 y la sección 8).
 
 ### 2.1 Decisión metodológica vigente
 
@@ -24,7 +24,7 @@ Alcance de la siguiente fase, anunciado al profesor en la presentación de avanc
 2. Intervenciones sobre Gtransporte: Metro Línea 1 (la propuesta habla de insertar un nuevo corredor de transporte público). Fijo.
 3. Robustez con 10 réplicas pareadas del índice R (Schneider et al., 2011). Fijo.
 
-El alcance no tiene elementos recortables. El riesgo de tiempo se gestiona con calendario hacia atrás desde la fecha de entrega, un punto de control al cerrar la línea base y escalamiento inmediato al equipo y al profesor cuando un hito se atrase.
+El alcance no tiene elementos recortables. No hay fecha de entrega: se avanza lo más posible en el orden del camino crítico de `PLAN.md` (Juan Esteban Correa, 2026-11-09).
 
 ### 2.2 Grafos construidos con OSMnx
 
@@ -75,7 +75,7 @@ El notebook del avance existe en `notebooks/Proyecto_diagnóstico_cuellos_de_bot
 - Intervención sobre Gtransporte: Metro Línea 1 (nuevo corredor de transporte público).
 - Comparación Gvial frente a Gtransporte con las mismas métricas, y comparación del espacio L frente al espacio P.
 - Robustez de las intervenciones con 10 réplicas pareadas del índice R. Fijo.
-- Informe final con la estructura exigida por el profesor.
+- Informe final con la estructura definida en la sección 10.
 
 ### Fuera
 
@@ -91,9 +91,9 @@ El notebook del avance existe en `notebooks/Proyecto_diagnóstico_cuellos_de_bot
 |---|---|---|
 | OE1 | Gvial reproducible en Colab | Notebook(s) que corren sin cambios y regeneran las cifras de la sección 2.3 (o explican las diferencias) |
 | OE2 | Gtransporte analizado con el mismo pipeline en espacio L y en espacio P | Grafos de TransMilenio en Drive (L y P) y resultados con las métricas de Gvial, y variante del grafo con Metro L1 |
-| OE3 | Conclusiones de robustez firmes | 10 réplicas pareadas del índice R para las intervenciones A y B, y evaluación de Metro L1 con réplicas pareadas (número por confirmar), o declaración fundamentada de no concluyente |
+| OE3 | Conclusiones de robustez firmes | 10 réplicas pareadas del índice R para las intervenciones A y B, y evaluación de Metro L1 con 10 réplicas pareadas, o declaración fundamentada de no concluyente |
 | OE4 | Comparación entre redes | Tabla y texto que contrastan Gvial y Gtransporte (L), y L frente a P |
-| OE5 | Informe final | Documento con la estructura del profesor, cifras trazables a ejecuciones |
+| OE5 | Informe final | Documento con la estructura de la sección 10, cifras trazables a ejecuciones |
 
 ## 5. Metodología
 
@@ -103,7 +103,7 @@ El notebook del avance existe en `notebooks/Proyecto_diagnóstico_cuellos_de_bot
 - Reproducibilidad: cada notebook corre en Colab sin cambios, lee de Drive o descarga con OSMnx, fija semillas aleatorias y registra versiones de librerías.
 - Toda cifra del informe proviene de una ejecución real.
 - Datos de OSM exportados en un formato que conserve la topología de nodos y enlaces (no GeoJSON simple).
-- Fases del plan: arranque, Gvial reproducible, Gtransporte y robustez, cierre. Detalle, hitos y control de tiempo (calendario hacia atrás, punto de control al cerrar la línea base, escalamiento inmediato ante un hito atrasado) en `PLAN.md`; decisiones de diseño en `docs/decisiones.md` (pendientes de confirmación, salvo el alcance de Gtransporte, las 10 réplicas y la letra de las intervenciones, confirmados el 2026-11-09).
+- Fases del plan: arranque, Gvial reproducible, Gtransporte y robustez, cierre. Detalle y orden de avance en `PLAN.md`; decisiones de diseño en `docs/decisiones.md` (pendientes de confirmación, salvo el alcance de Gtransporte, las 10 réplicas y la letra de las intervenciones, confirmados el 2026-11-09).
 - Cronograma de la propuesta original (referencia de hitos, no es la fecha de entrega): 10 semanas. Semanas 1 y 2: descarga y preprocesamiento. Semanas 3 a 5: análisis topológico y centralidad. Semanas 6 a 8: simulación de resiliencia y optimización. Semanas 9 y 10: redacción e informe final.
 - Cadencia de revisión del equipo: por definir.
 
@@ -112,7 +112,7 @@ El notebook del avance existe en `notebooks/Proyecto_diagnóstico_cuellos_de_bot
 - Herramientas: Python, OSMnx, NetworkX, GeoPandas, SciPy, Google Colab, Google Drive.
 - Datos: OpenStreetMap vía OSMnx (descarga a cargo de un integrante, no desde el entorno de Claude). GTFS de TransMilenio según la propuesta (fuente y vigencia por verificar). Trazado de Metro L1: fuente por definir (candidata: información oficial de la Empresa Metro de Bogotá, por verificar). Secretaría de Movilidad: acceso por verificar.
 - Almacenamiento: grafos y resultados en Drive; el repositorio contiene documentación y código.
-- Equipo: cuatro integrantes. Roles y responsables por tarea: por definir.
+- Equipo: cuatro integrantes. Responsable de todas las tareas del plan: Juan Esteban Correa (2026-11-09).
 - Fuentes de referencia en el repositorio: `docs/referencia/contexto_caos_y_complejidad.md`, presentación de avance (PDF), "Nodos = estaciones TransMilenio.pdf" (propuesta original), `docs/referencia/texto_pdfs_extraido.md` (texto de ambos PDF; ante una duda manda el PDF) y `docs/arquitectura/propuesta_pipeline.md`.
 
 ## 7. Stakeholders
@@ -131,10 +131,10 @@ El notebook del avance existe en `notebooks/Proyecto_diagnóstico_cuellos_de_bot
 | La fuente GTFS no trae rutas y frecuencias vigentes, o su licencia no lo permite | El espacio P no se puede construir y el peso por frecuencia queda sin fuente | Verificar la fuente antes de construir. Respaldos: GTFS de 2020 y 2021 declarando su fecha como limitación, relaciones de ruta de OSM (completitud sin verificar) o, si falta solo la frecuencia, un peso alternativo como supuesto documentado (A11). Si ninguna fuente trae rutas, no hay mitigación real para P: se escala al equipo y al profesor |
 | Metro L1 sin fuente de trazado, estaciones y tiempos | No se puede modelar la intervención | Verificar la información oficial de la Empresa Metro de Bogotá. Respaldo: trazado y estaciones transcritos de esa información como supuesto documentado, con el tiempo de viaje como parámetro y análisis de sensibilidad (A12). Fuente alternativa de datos abiertos: por identificar |
 | Las 10 réplicas pareadas de R no caben en una sesión de Colab | Corridas truncadas o no reproducibles | Cronometrar antes (tarea 14) y guardar resultados por réplica |
-| El alcance fijo (L, P, Metro L1, 10 réplicas) supera el tiempo disponible | Entrega incompleta | Calendario hacia atrás desde la fecha de entrega (tarea 2) con hitos por fase; punto de control al cerrar la línea base (tarea 4) con estimación del esfuerzo restante a partir de datos reales; escalamiento inmediato al equipo y al profesor ante un hito atrasado. Sin recortes, estas medidas avisan pero no reducen el trabajo |
+| El alcance fijo (L, P, Metro L1, 10 réplicas) supera el tiempo disponible | Entrega incompleta | Sin fecha de entrega ni recortes: avanzar en el orden del camino crítico de `PLAN.md`, empezando por la línea base, que es la base de todo lo demás |
 | Sin acceso a datos de la Secretaría de Movilidad | Escenario basado solo en OSMnx | Declarar la limitación en el informe |
 | Mejoras de intervención siguen sin ser concluyentes con 10 réplicas | Conclusión sobre intervenciones debilitada | Reportarlas como no concluyentes con fundamento; la intermediación exacta es una mejora opcional (decisión A10) |
-| Fecha de entrega desconocida | Plan sin fechas ni calendario hacia atrás | Confirmar con el profesor (tarea 2); mientras tanto el plan usa semanas relativas con el cronograma de 10 semanas de la propuesta como referencia |
+| Sin criterios de evaluación del profesor | No hay forma externa de saber si un objetivo está cumplido | Definir criterios propios por objetivo (tarea 2) |
 | Dispersión hacia infraestructura | Menos tiempo para análisis | Lista de exclusiones de la sección 3 |
 
 ## 9. Preguntas abiertas e inferencias
@@ -158,13 +158,14 @@ Inferencias a confirmar:
 
 ## 10. Criterios de éxito
 
-- Un integrante distinto al autor ejecuta `01_gvial` y `02_gtransporte` en Colab sin cambios y obtiene las cifras del informe.
+- `01_gvial` y `02_gtransporte` corren de arriba abajo en un entorno de Colab nuevo, desde una cuenta de Google distinta a la del autor, sin cambios, y obtienen las cifras del informe.
 - Cada cifra del informe se traza a un CSV y a la celda que lo generó.
 - Las diferencias con las cifras del avance están explicadas por escrito.
 - La comparación entre Gvial y Gtransporte usa las mismas métricas y responde cuál red es más frágil y por qué.
 - La robustez de las intervenciones se reporta con 10 réplicas pareadas del índice R, con resultado concluyente o declarado no concluyente con fundamento.
 - Gtransporte se entrega en espacio L y en espacio P, con la intervención Metro L1, tal como se anunció en la presentación de avance y en la propuesta.
 - Los supuestos usados para cubrir fuentes faltantes (GTFS, trazado de Metro L1) están documentados y declarados como limitación.
-- El informe cumple la estructura y los criterios confirmados por el profesor.
+- El informe cumple esta estructura (propuesta, pendiente de confirmar): 1. Pregunta y motivación. 2. Marco teórico. 3. Datos y construcción de las redes (Gvial, Gtransporte en L y P). 4. Metodología (métricas, ataques, cascada, intervenciones, índice R). 5. Resultados de Gvial. 6. Resultados de Gtransporte. 7. Intervenciones y robustez (A, B, Metro L1). 8. Comparación entre redes y entre espacios. 9. Conclusiones. 10. Limitaciones y supuestos. Anexo: cómo reproducir el análisis.
+- No hay criterios del profesor: estos criterios los definió el equipo (tarea 2).
 
 Plan de tareas: `PLAN.md`.
