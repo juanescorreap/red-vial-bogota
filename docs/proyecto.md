@@ -165,7 +165,7 @@ Inferencias a confirmar:
 - La robustez de las intervenciones se reporta con 10 réplicas pareadas del índice R, con resultado concluyente o declarado no concluyente con fundamento.
 - Gtransporte se entrega en espacio L y en espacio P, con la intervención Metro L1, tal como se anunció en la presentación de avance y en la propuesta.
 - Los supuestos usados para cubrir fuentes faltantes (GTFS, trazado de Metro L1) están documentados y declarados como limitación.
-- El informe cumple esta estructura (propuesta, pendiente de confirmar): 1. Pregunta y motivación. 2. Marco teórico. 3. Datos y construcción de las redes (Gvial, Gtransporte en L y P). 4. Metodología (métricas, ataques, cascada, intervenciones, índice R). 5. Resultados de Gvial. 6. Resultados de Gtransporte. 7. Intervenciones y robustez (A, B, Metro L1). 8. Comparación entre redes y entre espacios. 9. Conclusiones. 10. Limitaciones y supuestos. Anexo: cómo reproducir el análisis.
+- El informe cumple esta estructura: 1. Pregunta y motivación. 2. Marco teórico. 3. Datos y construcción de las redes (Gvial, Gtransporte en L y P). 4. Metodología (métricas, ataques, cascada, intervenciones, índice R). 5. Resultados de Gvial. 6. Resultados de Gtransporte. 7. Intervenciones y robustez (A, B, Metro L1). 8. Comparación entre redes y entre espacios. 9. Conclusiones. 10. Limitaciones y supuestos. Anexo: cómo reproducir el análisis.
 - No hay criterios del profesor: estos criterios los definió el equipo (tarea 2).
 
 Plan de tareas: `PLAN.md`.
