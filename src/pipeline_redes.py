@@ -231,6 +231,171 @@ def dependencia_velocidad(
 
 
 # ---------------------------------------------------------------------------
+# Eficiencia y cierres
+# ---------------------------------------------------------------------------
+
+def eficiencia(G: nx.DiGraph, fuentes: Sequence, peso: str = "travel_time") -> float:
+    """Eficiencia global (Latora y Marchiori) estimada desde los nodos `fuentes`.
+
+    Promedio de 1/d(s, v) sobre los pares alcanzables; los no alcanzables
+    aportan cero. El denominador usa todos los nodos del grafo.
+    """
+    n = G.number_of_nodes()
+    total = 0.0
+    for s in fuentes:
+        dist = nx.single_source_dijkstra_path_length(G, s, weight=peso)
+        total += sum(1 / t for v, t in dist.items() if v != s and t > 0)
+    return total / (len(fuentes) * (n - 1))
+
+
+def con_reverso(G: nx.DiGraph, aristas) -> list:
+    """Agrega el sentido contrario de cada arista que lo tenga: cerrar un tramo cierra ambos sentidos."""
+    s = set(aristas)
+    s |= {(v, u) for u, v in aristas if G.has_edge(v, u)}
+    return list(s)
+
+
+def cerrar_tramos(G: nx.DiGraph, aristas) -> nx.DiGraph:
+    """Copia del grafo sin las aristas indicadas ni sus sentidos contrarios."""
+    H = G.copy()
+    H.remove_edges_from(con_reverso(G, list(aristas)))
+    return H
+
+
+def tramos_de_corredor(tramos: pd.DataFrame, nombre: str) -> pd.DataFrame:
+    """Tramos cuyo nombre contiene `nombre`, incluidos los de nombre compuesto.
+
+    Es la regla del avance (hallazgo M5: también captura nombres que contienen
+    el texto). Se conserva para reproducir la línea base.
+    """
+    return tramos[tramos["nombre"].str.contains(nombre, regex=False)]
+
+
+def cerrar_aleatorio(G: nx.DiGraph, km_objetivo: float, seed: int) -> nx.DiGraph:
+    """Cierra tramos al azar hasta acumular `km_objetivo` kilómetros."""
+    r = random.Random(seed)
+    aristas = list(G.edges(data="length"))
+    r.shuffle(aristas)
+    quitar, km = [], 0.0
+    for u, v, largo in aristas:
+        if km >= km_objetivo:
+            break
+        quitar.append((u, v))
+        km += largo / 1000
+    return cerrar_tramos(G, quitar)
+
+
+def cierre_corredores(
+    G: nx.DiGraph,
+    tramos: pd.DataFrame,
+    nombres: Sequence[str],
+    fuentes: Sequence,
+    E0: float,
+    n_control: int = 5,
+) -> pd.DataFrame:
+    """Caída de eficiencia al cerrar cada corredor frente a cierres aleatorios de igual longitud.
+
+    `veces_control` < 1 indica que cerrar el corredor daña menos que cerrar al
+    azar la misma cantidad de kilómetros.
+    """
+    filas = []
+    for nombre in nombres:
+        sel = tramos_de_corredor(tramos, nombre)
+        H = cerrar_tramos(G, zip(sel["u"], sel["v"]))
+        km = sel["length_m"].sum() / 1000
+        caida = 100 * (1 - eficiencia(H, fuentes) / E0)
+        control = np.mean([100 * (1 - eficiencia(cerrar_aleatorio(G, km, s), fuentes) / E0)
+                           for s in range(n_control)])
+        filas.append({"corredor": nombre, "km": round(km, 1), "caida_E_%": caida,
+                      "control_aleatorio_%": control, "veces_control": caida / control})
+    return pd.DataFrame(filas).sort_values("caida_E_%", ascending=False)
+
+
+# ---------------------------------------------------------------------------
+# Resiliencia
+# ---------------------------------------------------------------------------
+
+def componente_gigante(G: nx.DiGraph) -> float:
+    """Fracción de nodos en la mayor componente fuertemente conexa."""
+    return len(max(nx.strongly_connected_components(G), key=len)) / G.number_of_nodes()
+
+
+def ataque(
+    G: nx.DiGraph,
+    estrategia: str,
+    fuentes: Sequence,
+    E0: float,
+    pasos: int = 15,
+    frac: float = 0.01,
+    seed: int = 0,
+    eb_inicial: Mapping | None = None,
+    k_recalculo: int = 300,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Retira tramos por lotes y mide qué queda de la red en cada paso.
+
+    Estrategias: "aleatorio" (lote al azar con `seed`), "eb_inicial" (ranking
+    fijo de `eb_inicial`) y "eb_recalculada" (ataque adaptativo: intermediación
+    recalculada con `k_recalculo` fuentes y semilla igual al paso). Cada lote
+    tiene `frac` del total de aristas original y se cierra en ambos sentidos.
+
+    Devuelve la curva (f nominal, f efectiva, S, E/E0, componentes) y el
+    registro de aristas retiradas por paso.
+    """
+    if estrategia not in ("aleatorio", "eb_inicial", "eb_recalculada"):
+        raise ValueError(f"Estrategia desconocida: {estrategia}")
+    if estrategia == "eb_inicial" and eb_inicial is None:
+        raise ValueError("La estrategia eb_inicial necesita eb_inicial")
+
+    H = G.copy()
+    M0 = G.number_of_edges()
+    lote = int(frac * M0)
+    r = random.Random(seed)
+    orden_ini = sorted(eb_inicial, key=eb_inicial.get, reverse=True) if eb_inicial else []
+
+    curva = [{"f": 0.0, "f_efectiva": 0.0, "S": 1.0, "E_rel": 1.0,
+              "componentes_fuertes": str([G.number_of_nodes()]), "debil_mayor": 1.0}]
+    registro = []
+    for p in range(1, pasos + 1):
+        if estrategia == "aleatorio":
+            quitar = r.sample(list(H.edges()), lote)
+        elif estrategia == "eb_inicial":
+            quitar = [e for e in orden_ini if H.has_edge(*e)][:lote]
+        else:
+            ebr = nx.edge_betweenness_centrality(H, k=k_recalculo, weight="travel_time", seed=p)
+            quitar = sorted(ebr, key=ebr.get, reverse=True)[:lote]
+        retiradas = con_reverso(H, quitar)
+        H.remove_edges_from(retiradas)
+        registro += [(p, u, v) for u, v in retiradas]
+
+        fuertes = sorted(map(len, nx.strongly_connected_components(H)), reverse=True)
+        debil = max(map(len, nx.weakly_connected_components(H)))
+        curva.append({
+            "f": p * frac,
+            "f_efectiva": 1 - H.number_of_edges() / M0,
+            "S": fuertes[0] / H.number_of_nodes(),
+            "E_rel": eficiencia(H, fuentes) / E0,
+            "componentes_fuertes": str(fuertes[:4]),
+            "debil_mayor": debil / H.number_of_nodes(),
+        })
+        log.info("%s paso %d: S=%.3f, E=%.3f", estrategia, p, curva[-1]["S"], curva[-1]["E_rel"])
+
+    curva = pd.DataFrame(curva).assign(estrategia=estrategia, rep=seed)
+    return curva, pd.DataFrame(registro, columns=["paso", "u", "v"])
+
+
+def f_critica(f: Sequence[float], S: Sequence[float], umbral: float = 0.5) -> float:
+    """Fracción en la que S cruza `umbral` por primera vez, interpolando entre pasos (A5).
+
+    Devuelve NaN si S nunca baja del umbral.
+    """
+    f, S = list(f), list(S)
+    for i in range(1, len(S)):
+        if S[i] < umbral <= S[i - 1]:
+            return f[i - 1] + (S[i - 1] - umbral) / (S[i - 1] - S[i]) * (f[i] - f[i - 1])
+    return float("nan")
+
+
+# ---------------------------------------------------------------------------
 # Comparaciones
 # ---------------------------------------------------------------------------
 

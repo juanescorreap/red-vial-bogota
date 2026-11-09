@@ -149,6 +149,58 @@ def test_dependencia_velocidad_valida_etiquetas():
         pr.dependencia_velocidad(pd.DataFrame({"t": [1.0], "l": [1.0]}), "t", "l", [1], ["a"])
 
 
+# --- eficiencia y cierres ---
+
+def test_eficiencia_ciclo():
+    # Desde cada nodo: distancias 60, 120 y 60 s -> (1/60 + 1/120 + 1/60) / 3
+    G = grafo_valido()
+    assert pr.eficiencia(G, list(G.nodes)) == pytest.approx((2 / 60 + 1 / 120) / 3)
+
+
+def test_con_reverso_y_cerrar_tramos():
+    G = grafo_valido()
+    assert set(pr.con_reverso(G, [(0, 1)])) == {(0, 1), (1, 0)}
+    H = pr.cerrar_tramos(G, [(0, 1)])
+    assert H.number_of_edges() == 6 and G.number_of_edges() == 8   # no modifica el original
+
+
+def test_cerrar_aleatorio_alcanza_km():
+    G = grafo_valido()
+    H = pr.cerrar_aleatorio(G, km_objetivo=1.5, seed=0)
+    # Dos aristas de 1 km cada una alcanzan 1,5 km; con sus reversos se retiran 2 o 4
+    assert G.number_of_edges() - H.number_of_edges() in (2, 4)
+
+
+def test_tramos_de_corredor_incluye_compuestos():
+    sel = pr.tramos_de_corredor(tramos_ejemplo(), "Av A")
+    assert len(sel) == 3
+
+
+# --- resiliencia ---
+
+def test_ataque_aleatorio_registra_curva_y_retiros():
+    G = grafo_valido()
+    curva, registro = pr.ataque(G, "aleatorio", list(G.nodes), E0=pr.eficiencia(G, list(G.nodes)),
+                                pasos=2, frac=0.25, seed=1)
+    assert list(curva["f"]) == [0.0, 0.25, 0.5]
+    assert curva["S"].iloc[0] == 1.0 and curva["S"].iloc[-1] < 1.0
+    assert set(registro["paso"]) <= {1, 2}
+    assert curva["f_efectiva"].iloc[-1] == pytest.approx(len(registro) / 8)
+
+
+def test_ataque_valida_estrategia():
+    G = grafo_valido()
+    with pytest.raises(ValueError):
+        pr.ataque(G, "otra", list(G.nodes), 1.0)
+    with pytest.raises(ValueError):
+        pr.ataque(G, "eb_inicial", list(G.nodes), 1.0)
+
+
+def test_f_critica_interpola():
+    assert pr.f_critica([0, 0.01, 0.02], [1.0, 0.6, 0.4]) == pytest.approx(0.015)
+    assert pr.f_critica([0, 0.01], [1.0, 0.9]) != pr.f_critica([0, 0.01], [1.0, 0.9])   # NaN
+
+
 # --- comparaciones ---
 
 def test_jaccard_y_comparacion():
