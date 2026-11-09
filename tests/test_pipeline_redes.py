@@ -215,6 +215,15 @@ def test_componentes_tras_retiro():
     assert sorted(len(c) for c in pr.componentes_tras_retiro(G, registro, 2)) == [2, 2]
 
 
+def test_comparar_replicas_concluyente_y_no():
+    r = pr.comparar_replicas([1.0, 1.0, 1.0], [1.1, 1.1, 1.1])
+    assert r["dR_medio_%"] == pytest.approx(10.0) and r["concluyente"]
+    r = pr.comparar_replicas([1.0, 1.0, 1.0, 1.0], [1.1, 0.9, 1.1, 0.9])
+    assert r["dR_medio_%"] == pytest.approx(0.0) and not r["concluyente"]
+    with pytest.raises(ValueError):
+        pr.comparar_replicas([1.0], [1.1])
+
+
 # --- intervenciones ---
 
 def test_agregar_enlace_doble_sentido():

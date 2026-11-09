@@ -234,17 +234,21 @@ def dependencia_velocidad(
 # Eficiencia y cierres
 # ---------------------------------------------------------------------------
 
-def eficiencia(G: nx.DiGraph, fuentes: Sequence, peso: str = "travel_time") -> float:
+def eficiencia(G: nx.DiGraph, fuentes: Sequence, peso: str = "travel_time",
+               destinos: set | None = None) -> float:
     """Eficiencia global (Latora y Marchiori) estimada desde los nodos `fuentes`.
 
     Promedio de 1/d(s, v) sobre los pares alcanzables; los no alcanzables
-    aportan cero. El denominador usa todos los nodos del grafo.
+    aportan cero. Sin `destinos`, el denominador usa todos los nodos del
+    grafo; con `destinos`, solo se cuentan esos nodos, lo que permite
+    comparar redes con nodos agregados sobre el mismo conjunto de pares.
     """
-    n = G.number_of_nodes()
+    n = G.number_of_nodes() if destinos is None else len(destinos)
     total = 0.0
     for s in fuentes:
         dist = nx.single_source_dijkstra_path_length(G, s, weight=peso)
-        total += sum(1 / t for v, t in dist.items() if v != s and t > 0)
+        total += sum(1 / t for v, t in dist.items()
+                     if v != s and t > 0 and (destinos is None or v in destinos))
     return total / (len(fuentes) * (n - 1))
 
 
@@ -419,6 +423,27 @@ def robustez(G: nx.DiGraph, pasos: int = 10, frac: float = 0.01, offset: int = 0
         H.remove_edges_from(con_reverso(H, sorted(ebr, key=ebr.get, reverse=True)[:lote]))
         S.append(componente_gigante(H))
     return float(np.mean(S)), S
+
+
+def comparar_replicas(base: Sequence[float], escenario: Sequence[float], confianza: float = 0.95) -> dict:
+    """Diferencia porcentual pareada de R entre un escenario y la base.
+
+    Cada réplica del escenario se compara con la réplica de la base que usa
+    la misma semilla. Devuelve la media de las diferencias, su desviación
+    estándar, el intervalo de confianza t de Student y si el intervalo
+    excluye el cero (resultado concluyente).
+    """
+    from scipy import stats
+
+    b, e = np.asarray(base, dtype=float), np.asarray(escenario, dtype=float)
+    if len(b) != len(e) or len(b) < 2:
+        raise ValueError("Se necesitan al menos 2 réplicas pareadas por escenario")
+    dif = 100 * (e - b) / b
+    media, de = float(dif.mean()), float(dif.std(ddof=1))
+    margen = float(stats.t.ppf((1 + confianza) / 2, len(dif) - 1) * de / np.sqrt(len(dif)))
+    return {"n": len(dif), "dR_medio_%": media, "desv_%": de,
+            "ic_inf_%": media - margen, "ic_sup_%": media + margen,
+            "concluyente": bool(media - margen > 0 or media + margen < 0)}
 
 
 # ---------------------------------------------------------------------------
