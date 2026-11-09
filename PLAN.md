@@ -82,7 +82,7 @@ No se modifica en ningún caso: tareas 1 a 5, snapshot de grafos, `validar_contr
 | # | Tarea | Responsable | Depende de | Criterio de terminado | Estado |
 |---|---|---|---|---|---|
 | 17 | Dejar Drive y repo listos para que el profesor reproduzca el análisis | Juan Esteban Correa | 9, 13, 21, 23 | Instrucciones de acceso a la carpeta en la primera celda de cada notebook; la carpeta abre desde una cuenta distinta a las del equipo | [ ] |
-| 18 | Redactar el informe con la estructura de la sección 10 de `docs/proyecto.md` para que el profesor evalúe la metodología | Juan Esteban Correa | 2, 16, 24 | Todas las secciones completas; cada cifra trazable a un CSV y a una celda | [ ] |
+| 18 | Redactar el informe con la estructura de la sección 10 de `docs/proyecto.md` para que el profesor evalúe la metodología | Juan Esteban Correa | 2, 16, 24 | Todas las secciones completas; cada cifra trazable a un CSV y a una celda Borrador completo 2026-11-09 en Claude Docs (https://claude.ai/artifact/WsXG7L8j5PaWqLCYsUUbAE), 10 secciones, referencias y anexo de reproducción; presentación final en https://claude.ai/artifact/EYbZM74MemZP4mcQUrHdTP. Falta la revisión de la tarea 19 | [~] |
 | 19 | Revisar el informe de punta a punta para garantizar coherencia y reproducibilidad | Juan Esteban Correa | 17, 18 | Revisión de punta a punta con la lista de criterios de la sección 10 de `docs/proyecto.md`, en una sesión distinta a la de redacción; cero cifras sin origen en una ejecución | [ ] |
 
 ## Dependencias de terceros
