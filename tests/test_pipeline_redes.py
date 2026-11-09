@@ -201,6 +201,43 @@ def test_f_critica_interpola():
     assert pr.f_critica([0, 0.01], [1.0, 0.9]) != pr.f_critica([0, 0.01], [1.0, 0.9])   # NaN
 
 
+def test_robustez_en_rango_y_reproducible():
+    G = grafo_valido()
+    R1, S1 = pr.robustez(G, pasos=3, frac=0.25, k=4)
+    R2, _ = pr.robustez(G, pasos=3, frac=0.25, k=4)
+    assert R1 == R2 and 0 < R1 <= 1 and len(S1) == 4 and S1[0] == 1.0
+
+
+def test_componentes_tras_retiro():
+    G = grafo_valido()
+    registro = pd.DataFrame({"paso": [1, 1, 2, 2], "u": [0, 1, 2, 3], "v": [1, 0, 3, 2]})
+    assert [len(c) for c in pr.componentes_tras_retiro(G, registro, 1)] == [4]
+    assert sorted(len(c) for c in pr.componentes_tras_retiro(G, registro, 2)) == [2, 2]
+
+
+# --- intervenciones ---
+
+def test_agregar_enlace_doble_sentido():
+    G = grafo_valido()
+    H, km = pr.agregar_enlace(G, 0, 2, vel_kph=36, factor=1.0)
+    assert km == pytest.approx(0.002)                 # nodos a 2 m en línea recta
+    assert H.edges[0, 2]["travel_time"] == pytest.approx(0.2) and H.has_edge(2, 0)
+    assert not G.has_edge(0, 2)
+
+
+def test_acelerar_y_km_de_corredores():
+    G = grafo_valido()
+    H = pr.acelerar(G, {"Av A"}, vel_kph=36)          # 10 m/s
+    assert H.edges[0, 1]["travel_time"] == pytest.approx(100.0)
+    assert H.edges[2, 3]["travel_time"] == 60.0       # "Av A / Av B" no es nombre exacto
+    assert pr.km_de_corredores(G, {"Av A"}) == pytest.approx(4.0)
+
+
+def test_tiempo_entre_zonas():
+    G = grafo_valido()
+    assert pr.tiempo_entre_zonas(G, {0}, {2}, n=1) == pytest.approx(2.0)
+
+
 # --- comparaciones ---
 
 def test_jaccard_y_comparacion():

@@ -395,6 +395,106 @@ def f_critica(f: Sequence[float], S: Sequence[float], umbral: float = 0.5) -> fl
     return float("nan")
 
 
+def componentes_tras_retiro(G: nx.DiGraph, registro: pd.DataFrame, hasta_paso: int) -> list[set]:
+    """Componentes fuertemente conexas (de mayor a menor) tras retirar las aristas del registro hasta un paso."""
+    H = G.copy()
+    sel = registro[registro["paso"] <= hasta_paso]
+    H.remove_edges_from(zip(sel["u"], sel["v"]))
+    return sorted(nx.strongly_connected_components(H), key=len, reverse=True)
+
+
+def robustez(G: nx.DiGraph, pasos: int = 10, frac: float = 0.01, offset: int = 0,
+             k: int = 300) -> tuple[float, list[float]]:
+    """Índice R (Schneider et al., 2011): media de S a lo largo de un ataque adaptativo.
+
+    Cada paso retira `frac` de las aristas de G (ambos sentidos) por
+    intermediación recalculada con `k` fuentes y semilla `paso + offset`. Las
+    réplicas usan offsets distintos con la misma red.
+    """
+    H = G.copy()
+    lote = int(frac * G.number_of_edges())
+    S = [1.0]
+    for p in range(1, pasos + 1):
+        ebr = nx.edge_betweenness_centrality(H, k=k, weight="travel_time", seed=p + offset)
+        H.remove_edges_from(con_reverso(H, sorted(ebr, key=ebr.get, reverse=True)[:lote]))
+        S.append(componente_gigante(H))
+    return float(np.mean(S)), S
+
+
+# ---------------------------------------------------------------------------
+# Intervenciones
+# ---------------------------------------------------------------------------
+
+def agregar_enlace(G: nx.DiGraph, u, v, vel_kph: float = 50, factor: float = 1.2,
+                   nombre: str = "CORREDOR NUEVO") -> tuple[nx.DiGraph, float]:
+    """Copia del grafo con un enlace nuevo de doble sentido entre u y v.
+
+    Su longitud es la distancia en línea recta por `factor` (trazado no
+    rectilíneo) y su tiempo, esa longitud a `vel_kph`. Devuelve el grafo y
+    la longitud en km.
+    """
+    H = G.copy()
+    largo = factor * np.hypot(G.nodes[u]["x"] - G.nodes[v]["x"], G.nodes[u]["y"] - G.nodes[v]["y"])
+    t = largo / (vel_kph / 3.6)
+    for a, b in ((u, v), (v, u)):
+        H.add_edge(a, b, length=largo, travel_time=t, name=nombre)
+    return H, largo / 1000
+
+
+def acelerar(G: nx.DiGraph, nombres: set[str], vel_kph: float = 50) -> nx.DiGraph:
+    """Copia del grafo con los tramos de los corredores `nombres` (nombre exacto) a `vel_kph`."""
+    H = G.copy()
+    for _, _, d in H.edges(data=True):
+        if d["name"] in nombres:
+            d["travel_time"] = d["length"] / (vel_kph / 3.6)
+    return H
+
+
+def km_de_corredores(G: nx.DiGraph, nombres: set[str]) -> float:
+    """Kilómetros de aristas (ambos sentidos) cuyo nombre exacto está en `nombres`."""
+    return sum(d["length"] for _, _, d in G.edges(data=True) if d["name"] in nombres) / 1000
+
+
+def candidatos_costura(G: nx.DiGraph, zona_a: set, zona_b: set, n: int = 150, dmin: float = 800,
+                       dmax: float = 4000, top: int = 8, seed: int = 1) -> pd.DataFrame:
+    """Pares de nodos entre dos zonas donde un enlace nuevo ahorraría más rodeo.
+
+    Muestrea `n` nodos por zona, conserva los pares a una distancia en línea
+    recta entre `dmin` y `dmax` metros y los ordena por rodeo (distancia por
+    la red dividida por la distancia en línea recta). Descarta candidatos a
+    menos de 1 km de uno ya elegido.
+    """
+    r = random.Random(seed)
+    sa, sb = r.sample(list(zona_a), n), r.sample(list(zona_b), n)
+    xy = lambda x: np.array([G.nodes[x]["x"], G.nodes[x]["y"]])
+    filas = []
+    for u in sa:
+        dist = nx.single_source_dijkstra_path_length(G, u, weight="length")
+        for v in sb:
+            de = np.linalg.norm(xy(u) - xy(v))
+            if dmin <= de <= dmax and v in dist:
+                filas.append((u, v, de, dist[v] / de))
+    c = pd.DataFrame(filas, columns=["u", "v", "d_euc", "rodeo"]).sort_values("rodeo", ascending=False)
+    elegidos = []
+    for fila in c.itertuples():
+        if all(np.linalg.norm(xy(fila.u) - xy(e.u)) > 1000 for e in elegidos):
+            elegidos.append(fila)
+        if len(elegidos) == top:
+            break
+    return pd.DataFrame(elegidos)
+
+
+def tiempo_entre_zonas(G: nx.DiGraph, zona_a: set, zona_b: set, n: int = 100, seed: int = 3) -> float:
+    """Tiempo medio de viaje en minutos entre muestras de `n` nodos de cada zona."""
+    r = random.Random(seed)
+    sa, sb = r.sample(list(zona_a), n), set(r.sample(list(zona_b), n))
+    tiempos = []
+    for u in sa:
+        d = nx.single_source_dijkstra_path_length(G, u, weight="travel_time")
+        tiempos += [d[v] for v in sb if v in d]
+    return float(np.mean(tiempos) / 60)
+
+
 # ---------------------------------------------------------------------------
 # Comparaciones
 # ---------------------------------------------------------------------------
