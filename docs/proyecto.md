@@ -148,11 +148,11 @@ Las decisiones abiertas con su responsable y lo que bloquean están en `docs/dec
 
 Inferencias a confirmar:
 
-- Los 4,8 y 4,2 de la diapositiva 12 son el índice R de A y B (media de 3 réplicas pareadas, no concluyente). No se ha confirmado si se expresan en porcentaje o en puntos de R, ni a qué se refiere el "4 a 5%" del documento de contexto. Se registra como inferencia pendiente.
+- Confirmado (línea base del 2026-11-09, `referencia_avance.csv`): los 4,8 y 4,2 de la diapositiva 12 son el cambio porcentual del R medio de 3 réplicas frente a la base (4,77% para A y 4,22% para B, celda 36). Se expresan en porcentaje, no en puntos de R. El "4 a 5%" del documento de contexto se refiere a esas dos cifras.
 - La propuesta indica "aristas = rutas" para Gtransporte. Se interpreta que en espacio P dos estaciones se unen si comparten ruta y en espacio L si son consecutivas (según la diapositiva 4 de la presentación). La regla exacta de construcción se define en la tarea 10.
 - La presentación de avance lista "Metro L1" y "10 réplicas de R" como siguiente fase, sin precisar si las 10 réplicas aplican a A y B de Gvial, a Metro L1 o a ambas. Se aplican a las tres intervenciones (confirmado por Juan Esteban Correa el 2026-11-09).
-- Las tres macrozonas suman 2.500 nodos (825, 957 y 718) frente a 3.203 de la red arterial. No consta a qué corresponde la diferencia; se verifica en la línea base y en la tarea 7.
-- La tabla de la diapositiva 12 da -0,41% de carga de la NQS por km para B, que no añade kilómetros nuevos. No consta la base del "por km" en B (inferencia: kilómetros de vía intervenida). Se verifica en la tarea 8.
+- Confirmado (línea base del 2026-11-09, `referencia_avance.csv`): las tres macrozonas (957, 825 y 718 nodos) son las tres componentes grandes tras 7 pasos de ataque adaptativo; los 703 nodos restantes quedan en componentes pequeñas (la cuarta tiene 38).
+- Confirmado (línea base del 2026-11-09, `referencia_avance.csv`): el "por km" de B usa los kilómetros de vía intervenida. -15,12% / 36,39 km (Carrera 68 con 20,08 km y Carrera 50 con 16,30 km) = -0,415% por km.
 - La diapositiva 12 nombra la intervención B como "Cra. 68 y 50". Se escribe "Carrera 50", como en la presentación y en el documento de contexto.
 - Se asume que Gtransporte se analiza con el mismo pipeline y las mismas métricas que Gvial, según la decisión metodológica registrada.
 

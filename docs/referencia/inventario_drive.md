@@ -19,7 +19,7 @@ La descarga agregó `.xml` al nombre de ambos archivos; el contenido no cambia.
 
 - Nodos: 3.203 y 59.198 coinciden con la presentación de avance (diapositivas 3 y 7).
 - Aristas de la red completa: 148.019 coincide con el documento de contexto.
-- Aristas de la red arterial: el grafo tiene 5.199 y el documento de contexto dice 5.175 (diferencia de 24). No es el conteo no dirigido de una red de doble sentido, que daría cerca de la mitad. Hipótesis por verificar en la tarea 4: 5.175 se contó después de convertir el grafo (por ejemplo con `ox.convert.to_digraph`, que une aristas paralelas, o al pasarlo a no dirigido).
+- Aristas de la red arterial: el `.graphml` tiene 5.199 aristas y lo presentado es 5.175. Confirmado en la línea base (2026-11-09): 5.175 es el conteo después de `ox.convert.to_digraph` (celda 5 del notebook), que une 24 aristas paralelas. Las dos cifras son correctas; el informe debe decir a cuál grafo se refiere.
 
 ## Lo que no se sabe
 
